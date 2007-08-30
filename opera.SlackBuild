@@ -7,10 +7,10 @@
 . ../slack-package.conf
 
 NAME=opera
-VERSION=9.20
+VERSION=9.23
 VER=920
-RELEASE=20070409
-VBUILD=638
+RELEASE=20070809
+VBUILD=660
 BUILD=1
 
 ARCH=i386
@@ -18,8 +18,8 @@ ARCH=i386
 INTERNATIONAL=true
 
 cd $TMP
-tar -zxvf $CWD/${NAME}-${VERSION}-${RELEASE}.5-shared-qt.${ARCH}-en.tar.gz
-SRC=$TMP/${NAME}-${VERSION}-${RELEASE}.5-shared-qt.${ARCH}-en-${VBUILD}
+tar -zxvf $CWD/${NAME}-${VERSION}-${RELEASE}.6-shared-qt.${ARCH}-en.tar.gz
+SRC=$TMP/${NAME}-${VERSION}-${RELEASE}.6-shared-qt.${ARCH}-en-${VBUILD}
 cd $SRC
 fix_source
 
@@ -36,7 +36,11 @@ mkdir -p $PKG
              --plugindir=/usr/lib/$NAME/plugins
 
 install -m 755 -d $PKG/etc
-install -m 644 $SRC/config/* $PKG/etc
+install -m 644 $SRC/config/opera6rc       $PKG/etc/opera6rc.new
+install -m 644 $SRC/config/opera6rc.fixed $PKG/etc/opera6rc.fixed.new
+
+install -m 755 -d $PKG/usr/share/applications
+install -m 644 $CWD/$NAME.desktop $PKG/usr/share/applications/$NAME.desktop
 
 # Download and install internationalization files
 if [ "x$INTERNATIONAL" = "xtrue" ]; then
@@ -53,15 +57,21 @@ fi
 bin_perms $PKG
 ( cd $PKG; strip_bin; strip_lib )
 ( cd $SRC; create_docs $PKG $NAME-$VERSION )
+install -m 644 $CWD/README.in $PKG/usr/doc/$NAME-$VERSION
 gzip_man $PKG
 
 mkdir -p $PKG/install
+install -m 644 $CWD/doinst.sh      $PKG/install
 install -m 644 $CWD/slack-desc     $PKG/install
 install -m 644 $CWD/slack-required $PKG/install
+
 mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/doinst.sh        $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/README.in        $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/$NAME.desktop    $PKG/usr/src/slackbuilds/$NAME-$VERSION
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
