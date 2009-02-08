@@ -7,20 +7,20 @@
 . ../slack-package.conf
 
 NAME=opera
-VERSION=9.27
-VER=927
-RELEASE=20080331
-VBUILD=709
+VERSION=9.63
+VER=960
+OBUILD=2474
 BUILD=1
 
 ARCH=i386
 
-INTERNATIONAL=true
+# This is true since 9.50
+#INTERNATIONAL=true
 
 cd $TMP
-tar -zxvf $CWD/${NAME}-${VERSION}-${RELEASE}.6-shared-qt.${ARCH}-en.tar.gz
-SRC=$TMP/${NAME}-${VERSION}-${RELEASE}.6-shared-qt.${ARCH}-en-${VBUILD}
-cd $SRC
+tar -zxvf $CWD/${NAME}-${VERSION}.gcc4-shared-qt3.${ARCH}.tar.gz || exit 1
+SRC=$TMP/${NAME}-${VERSION}-${OBUILD}.gcc4-shared-qt3.${ARCH}
+cd $SRC || exit 1
 fix_source
 
 PKG="$TMP/package-$NAME"
@@ -33,7 +33,7 @@ mkdir -p $PKG
              --docdir=/usr/doc/$NAME-$VERSION \
              --mandir=/usr/man \
              --sharedir=/usr/share/$NAME \
-             --plugindir=/usr/lib/$NAME/plugins
+             --plugindir=/usr/lib/$NAME/plugins || exit 2
 
 install -m 755 -d $PKG/etc
 install -m 644 $SRC/config/opera6rc       $PKG/etc/opera6rc.new
@@ -46,7 +46,7 @@ install -m 644 $CWD/$NAME.desktop $PKG/usr/share/applications/$NAME.desktop
 if [ "x$INTERNATIONAL" = "xtrue" ]; then
 # Language packs downloaded from the links found on
 #   http://www.opera.com/download/languagefiles/
-LANGUAGES="af be bg cs zh-cn zh-tw hr da nl fi fr fr-CA fy de hi hu it ja ko mk nn nb pl pt pt-BR ru es-LA es-ES sv tr"
+LANGUAGES="be bg cs zh-cn zh-tw hr da nl en-GB en et fi fr fr-CA fy ka de el hi hu id it ja ko mk nn nb pl pt pt-BR ru es-LA es-ES sv ta te tr uk"
   ( cd $PKG/usr/share/$NAME/locale
     for olang in $LANGUAGES; do
       wget "http://www.opera.com/download/lng/${VER}/ouw${VER}_${olang}.lng"
