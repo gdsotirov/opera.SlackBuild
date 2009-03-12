@@ -7,9 +7,9 @@
 . ../slack-package.conf
 
 NAME=opera
-VERSION=9.63
-VER=960
-OBUILD=2474
+VERSION=9.64
+#VER=960
+OBUILD=2480
 BUILD=1
 
 ARCH=i386
@@ -43,16 +43,17 @@ install -m 755 -d $PKG/usr/share/applications
 install -m 644 $CWD/$NAME.desktop $PKG/usr/share/applications/$NAME.desktop
 
 # Download and install internationalization files
-if [ "x$INTERNATIONAL" = "xtrue" ]; then
+# NOT required since 9.x
+#if [ "x$INTERNATIONAL" = "xtrue" ]; then
 # Language packs downloaded from the links found on
 #   http://www.opera.com/download/languagefiles/
-LANGUAGES="be bg cs zh-cn zh-tw hr da nl en-GB en et fi fr fr-CA fy ka de el hi hu id it ja ko mk nn nb pl pt pt-BR ru es-LA es-ES sv ta te tr uk"
-  ( cd $PKG/usr/share/$NAME/locale
-    for olang in $LANGUAGES; do
-      wget "http://www.opera.com/download/lng/${VER}/ouw${VER}_${olang}.lng"
-    done
-  )
-fi
+#LANGUAGES="be bg cs zh-cn zh-tw hr da nl en-GB en et fi fr fr-CA fy ka de el hi hu id it ja ko mk nn nb pl pt pt-BR ru es-LA es-ES sv ta te tr uk"
+#  ( cd $PKG/usr/share/$NAME/locale
+#    for olang in $LANGUAGES; do
+#      wget "http://www.opera.com/download/lng/${VER}/ouw${VER}_${olang}.lng"
+#    done
+#  )
+#fi
 
 bin_perms $PKG
 ( cd $PKG; strip_bin; strip_lib )
