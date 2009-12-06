@@ -7,25 +7,38 @@
 . ../slack-package.conf
 
 NAME=opera
-VERSION=9.64
-#VER=960
-OBUILD=2480
+VERSION=10.10
+VER_BUILD=4742
+ARCH=i386
 BUILD=1
 
-ARCH=i386
+TMP=${TMP:-/tmp}
+CWD=${CWD:-`pwd`}
 
-# This is true since 9.50
-#INTERNATIONAL=true
+if [ ! -e $TMP ]; then
+  mkdir -p $TMP # location to build the source
+fi
 
+SRC=$TMP/${NAME}-${VERSION}-${VER_BUILD}.gcc4-shared-qt3.${ARCH}
+if [ -e $SRC -a -d $SRC ]; then
+  echo "Source directory '$SRC' already exists! Plaese, move it or remove it."
+  exit 1
+fi
+
+PKG=$TMP/package-$NAME
+if [ -e $PKG -a -d $PKG ]; then
+  echo "Package creation directory '$PKG' already exists! Please, move it or remove it."
+  exit 2
+fi
+mkdir -p $PKG
+
+# Extract the source
 cd $TMP
-tar -zxvf $CWD/${NAME}-${VERSION}.gcc4-shared-qt3.${ARCH}.tar.gz || exit 1
-SRC=$TMP/${NAME}-${VERSION}-${OBUILD}.gcc4-shared-qt3.${ARCH}
+tar -jxvf $CWD/${NAME}-${VERSION}.gcc4-shared-qt3.${ARCH}.tar.bz2 || exit 1
 cd $SRC || exit 1
 fix_source
 
-PKG="$TMP/package-$NAME"
-mkdir -p $PKG
-
+# Build & install
 ./install.sh --DESTDIR=$PKG \
              --prefix=/ \
              --exec_prefix=/usr/lib/$NAME-$VERSION \
@@ -36,28 +49,17 @@ mkdir -p $PKG
              --plugindir=/usr/lib/$NAME/plugins || exit 2
 
 install -m 755 -d $PKG/etc
-install -m 644 $SRC/config/opera6rc       $PKG/etc/opera6rc.new
-install -m 644 $SRC/config/opera6rc.fixed $PKG/etc/opera6rc.fixed.new
+install -m 644 $SRC/etc/operaprefs_default.ini $PKG/etc/operaprefs.ini.new
+install -m 644 $SRC/etc/operaprefs_fixed.ini   $PKG/etc/operaprefs_fixed.ini.new
 
 install -m 755 -d $PKG/usr/share/applications
 install -m 644 $CWD/$NAME.desktop $PKG/usr/share/applications/$NAME.desktop
 
-# Download and install internationalization files
-# NOT required since 9.x
-#if [ "x$INTERNATIONAL" = "xtrue" ]; then
-# Language packs downloaded from the links found on
-#   http://www.opera.com/download/languagefiles/
-#LANGUAGES="be bg cs zh-cn zh-tw hr da nl en-GB en et fi fr fr-CA fy ka de el hi hu id it ja ko mk nn nb pl pt pt-BR ru es-LA es-ES sv ta te tr uk"
-#  ( cd $PKG/usr/share/$NAME/locale
-#    for olang in $LANGUAGES; do
-#      wget "http://www.opera.com/download/lng/${VER}/ouw${VER}_${olang}.lng"
-#    done
-#  )
-#fi
-
+# Prepare
 bin_perms $PKG
 ( cd $PKG; strip_bin; strip_lib )
 ( cd $SRC; create_docs $PKG $NAME-$VERSION )
+mv $PKG/usr/doc/$NAME-$VERSION/LICENSE $PKG/usr/doc/$NAME-$VERSION/COPYING
 install -m 644 $CWD/README.in $PKG/usr/doc/$NAME-$VERSION
 gzip_man $PKG
 
@@ -76,9 +78,9 @@ install -m 644 $CWD/$NAME.desktop    $PKG/usr/src/slackbuilds/$NAME-$VERSION
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
-makepkg -l y -c n $PKG_DIR/$PKGNAME.tgz
+makepkg -l y -c n $PKG_DIR/$PKGNAME.txz
 cd $PKG_DIR
-md5sum $PKGNAME.tgz > $PKGNAME.tgz.md5
+md5sum $PKGNAME.txz > $PKGNAME.txz.md5
 cat $PKG/install/slack-desc > $PKG_DIR/$PKGNAME.txt
 
 if [ "$1" == "--cleanup" ]; then
