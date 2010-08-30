@@ -39,6 +39,9 @@ tar -xvf $CWD/${NAME}-${VERSION}-${VER_BUILD}.${ARCH}.linux.tar.bz2 || exit 1
 cd $SRC
 fix_source
 
+# Apply patches
+patch -p1 -b -z.orig < $CWD/$NAME-$VERSION.diff
+
 # Manual installation script (script install is no longer useful)
 install -m 755 -D -d $PKG/usr/bin
 install -m 755 $SRC/opera $PKG/usr/bin/opera
@@ -77,6 +80,7 @@ install -m 644 $CWD/doinst.sh           $SBDIR/doinst.sh
 install -m 644 $CWD/README.in           $SBDIR/README.in
 install -m 644 $CWD/slack-desc          $SBDIR/slack-desc
 install -m 644 $CWD/slack-required      $SBDIR/slack-required
+install -m 644 $CWD/$NAME-$VERSION.diff $SBDIR/$NAME-$VERSION.diff
 install -m 644 $CWD/$NAME.SlackBuild    $SBDIR/$NAME.SlackBuild
 
 cd $PKG
