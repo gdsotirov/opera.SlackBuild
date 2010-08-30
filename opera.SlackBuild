@@ -2,15 +2,16 @@
 #
 # Slackware Build Script for Opera
 # Written by Georgi D. Sotirov <gdsotirov@dir.bg>
+# Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
 
 . ../slack-package.conf
 
 NAME=opera
-VERSION=10.10
-VER_BUILD=4742
+VERSION=10.61
+VER_BUILD=6430
 ARCH=i386
-BUILD=1
+BUILD=${BUILD:-1}
 
 TMP=${TMP:-/tmp}
 CWD=${CWD:-`pwd`}
@@ -19,7 +20,7 @@ if [ ! -e $TMP ]; then
   mkdir -p $TMP # location to build the source
 fi
 
-SRC=$TMP/${NAME}-${VERSION}-${VER_BUILD}.gcc4-shared-qt3.${ARCH}
+SRC=$TMP/${NAME}-${VERSION}-${VER_BUILD}.${ARCH}.linux
 if [ -e $SRC -a -d $SRC ]; then
   echo "Source directory '$SRC' already exists! Plaese, move it or remove it."
   exit 1
@@ -34,47 +35,49 @@ mkdir -p $PKG
 
 # Extract the source
 cd $TMP
-tar -jxvf $CWD/${NAME}-${VERSION}.gcc4-shared-qt3.${ARCH}.tar.bz2 || exit 1
-cd $SRC || exit 1
+tar -xvf $CWD/${NAME}-${VERSION}-${VER_BUILD}.${ARCH}.linux.tar.bz2 || exit 1
+cd $SRC
 fix_source
 
-# Build & install
-./install.sh --DESTDIR=$PKG \
-             --prefix=/ \
-             --exec_prefix=/usr/lib/$NAME-$VERSION \
-             --wrapperdir=/usr/bin \
-             --docdir=/usr/doc/$NAME-$VERSION \
-             --mandir=/usr/man \
-             --sharedir=/usr/share/$NAME \
-             --plugindir=/usr/lib/$NAME/plugins || exit 2
+# Manual installation script (script install is no longer useful)
+install -m 755 -D -d $PKG/usr/bin
+install -m 755 $SRC/opera $PKG/usr/bin/opera
+install -m 755 $SRC/opera-widget-manager $PKG/usr/bin/opera-widget-manager
 
-install -m 755 -d $PKG/etc
-install -m 644 $SRC/etc/operaprefs_default.ini $PKG/etc/operaprefs.ini.new
-install -m 644 $SRC/etc/operaprefs_fixed.ini   $PKG/etc/operaprefs_fixed.ini.new
+mv $SRC/lib $PKG/usr
+mv $SRC/share $PKG/usr
 
-install -m 755 -d $PKG/usr/share/applications
-install -m 644 $CWD/$NAME.desktop $PKG/usr/share/applications/$NAME.desktop
+( cd $PKG/usr/share/applications
+  for dskfile in *.desktop; do
+    sed -r -i -e 's/@@\{_?SUFFIX\}//' -e 's/@@\{PREFIX\}/\/usr/' $dskfile
+  done )
 
 # Prepare
 bin_perms $PKG
 ( cd $PKG; strip_bin; strip_lib )
-( cd $SRC; create_docs $PKG $NAME-$VERSION )
-mv $PKG/usr/doc/$NAME-$VERSION/LICENSE $PKG/usr/doc/$NAME-$VERSION/COPYING
+# - move documents
+install -m 755 -D -d $PKG/usr/doc/$NAME-$VERSION
+install -m 644 $PKG/usr/share/doc/$NAME/* $PKG/usr/doc/$NAME-$VERSION
+( cd $PKG/usr/doc/$NAME-$VERSION
+  mv LICENSE COPYING )
 install -m 644 $CWD/README.in $PKG/usr/doc/$NAME-$VERSION
-gzip_man $PKG
+rm -rf $PKG/usr/share/doc
+# - fix man pages location
+( cd $PKG/usr/share
+  mv man .. )
 
 mkdir -p $PKG/install
 install -m 644 $CWD/doinst.sh      $PKG/install
 install -m 644 $CWD/slack-desc     $PKG/install
 install -m 644 $CWD/slack-required $PKG/install
 
-mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/doinst.sh        $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/README.in        $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.desktop    $PKG/usr/src/slackbuilds/$NAME-$VERSION
+SBDIR=$PKG/usr/src/slackbuilds/$NAME-$VERSION
+mkdir -p $SBDIR
+install -m 644 $CWD/doinst.sh           $SBDIR/doinst.sh
+install -m 644 $CWD/README.in           $SBDIR/README.in
+install -m 644 $CWD/slack-desc          $SBDIR/slack-desc
+install -m 644 $CWD/slack-required      $SBDIR/slack-required
+install -m 644 $CWD/$NAME.SlackBuild    $SBDIR/$NAME.SlackBuild
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
